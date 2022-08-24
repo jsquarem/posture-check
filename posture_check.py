@@ -107,7 +107,11 @@ with mp_pose.Pose(
         system('say "Check posture"')
   
     # Draw boundry box and calibration text
-    cv2.rectangle(image, tuple(np.multiply(rectangle_top_left, [1280, 720]).astype(int)), tuple(np.multiply(rectangle_bottom_right, [1280, 720]).astype(int)), (255,255,255), 1)
+    cv2.rectangle(image, 
+                    tuple(np.multiply(rectangle_top_left, [1280, 720]).astype(int)), 
+                    tuple(np.multiply(rectangle_bottom_right, [1280, 720]).astype(int)), 
+                    (255,255,255), 1
+                  )
     cv2.putText(image, str(calibrate_text),
                   tuple(np.multiply(calibrate_coords, [1280, 720]).astype(int)),
                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2, cv2.LINE_AA
