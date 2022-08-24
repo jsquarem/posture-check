@@ -23,7 +23,6 @@ with mp_pose.Pose(
 
   while cap.isOpened():
     ret, frame = cap.read()
-
     # Recolor to RGB for MP
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     image.flags.writeable = False
@@ -37,6 +36,8 @@ with mp_pose.Pose(
 
     try:
       landmarks = results.pose_landmarks.landmark
+
+      # Isolate relevant landmarks
       left_eye_x = landmarks[mp_pose.PoseLandmark.LEFT_EYE_OUTER].x
       left_eye_y = landmarks[mp_pose.PoseLandmark.LEFT_EYE_OUTER].y
       right_eye_x = landmarks[mp_pose.PoseLandmark.RIGHT_EYE_OUTER].x
@@ -45,23 +46,24 @@ with mp_pose.Pose(
       mouth_left_y = landmarks[mp_pose.PoseLandmark.MOUTH_LEFT].y
       mouth_right_x = landmarks[mp_pose.PoseLandmark.MOUTH_RIGHT].x
       mouth_right_y = landmarks[mp_pose.PoseLandmark.MOUTH_RIGHT].y
+
+      # Build X and Y lists to more readily check max values
       x_values = [left_eye_x, right_eye_x, mouth_left_x, mouth_right_x]
-      y_values = [left_eye_y, right_eye_y, mouth_left_y, mouth_right_y]
-  
+      y_values = [left_eye_y, right_eye_y, mouth_left_y, mouth_right_y] 
+
       # Establish and update min and max values for the X and Y axes
       if i < 200 and i > 15:
         for value in x_values:
           if x_max < value or x_max == 0:
             x_max = value
           if x_min > value or x_min == 0:
-            x_min = value
-        
+            x_min = value        
         for value in y_values:
           if y_max < value or y_max == 0:
             y_max = value
           if y_min > value or y_min == 0:
-            y_min = value  
-      
+            y_min = value 
+
     except:
       pass
 
@@ -88,24 +90,21 @@ with mp_pose.Pose(
         if x_max < value or x_min > value:
           out_of_bounds_x = True
         else:
-          out_of_bounds_x = False
-      
+          out_of_bounds_x = False      
       for value in y_values:
         if y_max < value or y_min > value:
           out_of_bounds_y = True
         else: 
-          out_of_bounds_y = False
-      
+          out_of_bounds_y = False      
       if out_of_bounds_x == True or out_of_bounds_y == True:
         count += 1
       else:
         count = 0
-
       if count >= 30:
         count = 0
         print('Check Posture')
         system('say "Check posture"')
-  
+
     # Draw boundry box and calibration text
     cv2.rectangle(image, 
                     tuple(np.multiply(rectangle_top_left, [1280, 720]).astype(int)), 
@@ -115,16 +114,13 @@ with mp_pose.Pose(
     cv2.putText(image, str(calibrate_text),
                   tuple(np.multiply(calibrate_coords, [1280, 720]).astype(int)),
                   cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,0,0), 2, cv2.LINE_AA
-                )
+                )  
+    # Draw posture landmarks  
+    mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
     
-    mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS) # mp_pose.POSE_CONNECTIONS [mp_pose.PoseLandmark.RIGHT_EYE_OUTER, mp_pose.PoseLandmark.LEFT_EYE_OUTER]
-
-    i += 1
-
     cv2.imshow('Webcam Feed', image)
-
     if cv2.waitKey(5) & 0xFF == 27:
       break
-  
+    i += 1
   cap.release()
   cv2.destroyAllWindows()
